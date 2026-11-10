@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
+import LoginPage from './components/LoginPage';
 import StudentDashboard from './components/StudentDashboard';
 import TeacherDashboard from './components/TeacherDashboard';
 import AdminDashboard from './components/AdminDashboard';
@@ -8,6 +9,7 @@ import CourseList from './components/CourseList';
 import CbtExamModule from './components/CbtExamModule';
 import AttendanceModule from './components/AttendanceModule';
 import GradesReportModule from './components/GradesReportModule';
+import UserProfileModule from './components/UserProfileModule';
 import { apiService } from './services/apiService';
 
 export default function App() {
@@ -29,11 +31,40 @@ export default function App() {
   const [announcements, setAnnouncements] = useState(() => apiService.getAnnouncements());
   const [users, setUsers] = useState(() => apiService.getUsers());
 
-  // Handle User Change (Role Switcher)
-  const handleUserChange = (user) => {
+  // Handle Logout
+  const handleLogout = () => {
+    apiService.logout();
+    setCurrentUser(null);
+  };
+
+  // Handle Login Success
+  const handleLoginSuccess = (user) => {
     setCurrentUser(user);
     setActiveTab('dashboard');
+    // Refresh users and data in case of any storage sync
+    setUsers(apiService.getUsers());
   };
+
+  // Handle Profile or User Updates
+  const handleUserUpdated = (updatedUser, allUsers) => {
+    setCurrentUser(updatedUser);
+    if (allUsers) {
+      setUsers(allUsers);
+    }
+  };
+
+  // If not logged in, render the official SMKN 1 Cibinong Login Page
+  if (!currentUser) {
+    return (
+      <div className={darkMode ? 'dark-theme' : ''}>
+        <LoginPage
+          onLoginSuccess={handleLoginSuccess}
+          darkMode={darkMode}
+          setDarkMode={setDarkMode}
+        />
+      </div>
+    );
+  }
 
   // Render View Based on Active Tab & User Role
   const renderMainContent = () => {
@@ -115,6 +146,13 @@ export default function App() {
             currentUser={currentUser}
           />
         );
+      case 'profile':
+        return (
+          <UserProfileModule
+            currentUser={currentUser}
+            onUserUpdated={handleUserUpdated}
+          />
+        );
       case 'users':
         return (
           <AdminDashboard
@@ -155,7 +193,7 @@ export default function App() {
       {/* Top Navbar Header */}
       <Navbar
         currentUser={currentUser}
-        onUserChange={handleUserChange}
+        onLogout={handleLogout}
         darkMode={darkMode}
         setDarkMode={setDarkMode}
         activeTab={activeTab}

@@ -29,7 +29,7 @@ export default function StudentDashboard({ currentUser, setActiveTab, exams, ass
       <div className="hero-banner">
         <div style={{ position: 'relative', zIndex: 2 }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.15)', padding: '0.35rem 0.85rem', borderRadius: '9999px', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.75rem' }}>
-            🎓 Portal Siswa • SMKN 1 Cibinong
+            <img src="/logo-smkn1.png" alt="Logo SMKN 1 Cibinong" style={{ height: "22px", width: "auto" }} /> <span>Portal Siswa • SMKN 1 Cibinong</span>
           </div>
           <h2 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '0.5rem' }}>
             Selamat Datang, {currentUser.name}!

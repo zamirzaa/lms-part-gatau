@@ -42,10 +42,31 @@ function setStoredData(key, value) {
 
 // Service API
 export const apiService = {
-  // Init database
+  // Init database with smart auto-merge of new initial data (e.g. XII SIJA)
   initDatabase: () => {
-    if (!localStorage.getItem(STORAGE_KEYS.USERS)) setStoredData(STORAGE_KEYS.USERS, INITIAL_USERS);
-    if (!localStorage.getItem(STORAGE_KEYS.COURSES)) setStoredData(STORAGE_KEYS.COURSES, INITIAL_COURSES);
+    let existingUsers = getStoredData(STORAGE_KEYS.USERS, null);
+    if (!existingUsers) {
+      setStoredData(STORAGE_KEYS.USERS, INITIAL_USERS);
+    } else {
+      const existingIds = new Set(existingUsers.map(u => u.id));
+      const missingUsers = INITIAL_USERS.filter(u => !existingIds.has(u.id));
+      if (missingUsers.length > 0) {
+        existingUsers = [...existingUsers, ...missingUsers];
+        setStoredData(STORAGE_KEYS.USERS, existingUsers);
+      }
+    }
+
+    let existingCourses = getStoredData(STORAGE_KEYS.COURSES, null);
+    if (!existingCourses) {
+      setStoredData(STORAGE_KEYS.COURSES, INITIAL_COURSES);
+    } else {
+      const existingCourseIds = new Set(existingCourses.map(c => c.id));
+      const missingCourses = INITIAL_COURSES.filter(c => !existingCourseIds.has(c.id));
+      if (missingCourses.length > 0) {
+        setStoredData(STORAGE_KEYS.COURSES, [...existingCourses, ...missingCourses]);
+      }
+    }
+
     if (!localStorage.getItem(STORAGE_KEYS.MODULES)) setStoredData(STORAGE_KEYS.MODULES, INITIAL_MODULES);
     if (!localStorage.getItem(STORAGE_KEYS.ASSIGNMENTS)) setStoredData(STORAGE_KEYS.ASSIGNMENTS, INITIAL_ASSIGNMENTS);
     if (!localStorage.getItem(STORAGE_KEYS.EXAMS)) setStoredData(STORAGE_KEYS.EXAMS, INITIAL_EXAMS);
@@ -55,14 +76,50 @@ export const apiService = {
   },
 
   // Auth / Current User Management
+  getAuthenticatedUser: () => {
+    return getStoredData(STORAGE_KEYS.CURRENT_USER, null);
+  },
+
   getCurrentUser: () => {
-    const defaultUser = INITIAL_USERS[0]; // Default: Ahmad Rizki (Siswa)
-    return getStoredData(STORAGE_KEYS.CURRENT_USER, defaultUser);
+    return getStoredData(STORAGE_KEYS.CURRENT_USER, null);
   },
 
   setCurrentUser: (user) => {
-    setStoredData(STORAGE_KEYS.CURRENT_USER, user);
+    if (user) {
+      setStoredData(STORAGE_KEYS.CURRENT_USER, user);
+    } else {
+      localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
+    }
     return user;
+  },
+
+  login: (identityOrUsername, password) => {
+    const users = apiService.getUsers();
+    const query = (identityOrUsername || '').trim().toLowerCase();
+
+    // Find by NISN / NIP or username or full name
+    const foundUser = users.find(u =>
+      (u.identityNo && u.identityNo.toLowerCase() === query) ||
+      (u.username && u.username.toLowerCase() === query) ||
+      (u.name && u.name.toLowerCase() === query)
+    );
+
+    if (!foundUser) {
+      return { success: false, message: 'NISN / NIP atau Username tidak terdaftar di sistem e-Learning SMKN 1 Cibinong.' };
+    }
+
+    // Default password for all accounts is '12345678'
+    const correctPassword = foundUser.password || '12345678';
+    if (password !== correctPassword && password !== '12345678') {
+      return { success: false, message: 'Password salah! (Password default adalah: 12345678)' };
+    }
+
+    setStoredData(STORAGE_KEYS.CURRENT_USER, foundUser);
+    return { success: true, user: foundUser };
+  },
+
+  logout: () => {
+    localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
   },
 
   getUsers: () => getStoredData(STORAGE_KEYS.USERS, INITIAL_USERS),
@@ -79,6 +136,39 @@ export const apiService = {
     const updated = users.filter(u => u.id !== userId);
     setStoredData(STORAGE_KEYS.USERS, updated);
     return updated;
+  },
+
+  updateUser: (updatedUser) => {
+    const users = getStoredData(STORAGE_KEYS.USERS, INITIAL_USERS);
+    const updated = users.map(u => u.id === updatedUser.id ? { ...u, ...updatedUser } : u);
+    setStoredData(STORAGE_KEYS.USERS, updated);
+    const current = getStoredData(STORAGE_KEYS.CURRENT_USER, null);
+    if (current && current.id === updatedUser.id) {
+      const updatedCurrent = { ...current, ...updatedUser };
+      setStoredData(STORAGE_KEYS.CURRENT_USER, updatedCurrent);
+    }
+    return updated;
+  },
+
+  updateCurrentUserProfile: (profileData) => {
+    const current = apiService.getCurrentUser();
+    if (!current) return { updatedUser: null, allUsers: apiService.getUsers() };
+
+    // Proteksi: Nama dan NISN/NIP tidak boleh diubah oleh user profil biasa
+    const sanitized = {
+      ...current,
+      email: profileData.email ?? current.email,
+      phone: profileData.phone ?? current.phone,
+      avatar: profileData.avatar ?? current.avatar,
+      bio: profileData.bio ?? current.bio,
+      address: profileData.address ?? current.address
+      // name dan identityNo tetap dipertahankan dari current
+    };
+    setStoredData(STORAGE_KEYS.CURRENT_USER, sanitized);
+    const users = getStoredData(STORAGE_KEYS.USERS, INITIAL_USERS);
+    const updated = users.map(u => u.id === sanitized.id ? sanitized : u);
+    setStoredData(STORAGE_KEYS.USERS, updated);
+    return { updatedUser: sanitized, allUsers: updated };
   },
 
   // Courses / Mapel

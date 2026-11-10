@@ -54,7 +54,7 @@ export default function TeacherDashboard({ currentUser, courses, assignments, ex
       <div className="hero-banner" style={{ background: 'linear-gradient(135deg, #1e3a8a 0%, #0d9488 100%)' }}>
         <div style={{ position: 'relative', zIndex: 2 }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.15)', padding: '0.35rem 0.85rem', borderRadius: '9999px', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.75rem' }}>
-            👨‍🏫 Portal Pengajar • SMKN 1 Cibinong
+            <img src="/logo-smkn1.png" alt="Logo SMKN 1 Cibinong" style={{ height: "22px", width: "auto" }} /> <span>Portal Pengajar • SMKN 1 Cibinong</span>
           </div>
           <h2 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '0.5rem' }}>
             Selamat Datang, {currentUser.name}

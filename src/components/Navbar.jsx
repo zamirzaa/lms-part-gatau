@@ -1,35 +1,32 @@
 import React, { useState } from 'react';
 import {
-  GraduationCap,
   Bell,
   Sun,
   Moon,
   ChevronDown,
   UserCheck,
-  LogOut,
-  Sparkles,
   Search,
-  ShieldCheck,
-  RotateCcw
+  LogOut,
+  User,
+  ShieldAlert
 } from 'lucide-react';
-import { apiService } from '../services/apiService';
-import { INITIAL_USERS } from '../services/mockData';
 
-export default function Navbar({ currentUser, onUserChange, darkMode, setDarkMode, activeTab, setActiveTab }) {
-  const [showRoleMenu, setShowRoleMenu] = useState(false);
+export default function Navbar({
+  currentUser,
+  onLogout,
+  darkMode,
+  setDarkMode,
+  activeTab,
+  setActiveTab
+}) {
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotificationDrawer, setShowNotificationDrawer] = useState(false);
 
   const notifications = [
-    { id: 1, text: "Ujian CBT 'UTS Pemrograman Web' aktif sampai jam 12:00 WIB", time: "10m yang lalu", unread: true },
-    { id: 2, text: "Tugas 1 React JS telah dinilai oleh Pak Budi Santoso (Skor: 95)", time: "1j yang lalu", unread: true },
+    { id: 1, text: "Ujian CBT Komputasi Awan (XII SIJA) telah dibuka", time: "5m yang lalu", unread: true },
+    { id: 2, text: "Praktikum Setup Nginx telah dinilai oleh Pak Budi Santoso", time: "30m yang lalu", unread: true },
     { id: 3, text: "Pengumuman PTS Ganjil 2025/2026 telah dirilis", time: "1 hari yang lalu", unread: false }
   ];
-
-  const handleRoleSelect = (user) => {
-    apiService.setCurrentUser(user);
-    onUserChange(user);
-    setShowRoleMenu(false);
-  };
 
   const getRoleBadge = (role) => {
     switch (role) {
@@ -44,6 +41,8 @@ export default function Navbar({ currentUser, onUserChange, darkMode, setDarkMod
     }
   };
 
+  if (!currentUser) return null;
+
   return (
     <header className="no-print" style={{
       position: 'sticky',
@@ -52,33 +51,30 @@ export default function Navbar({ currentUser, onUserChange, darkMode, setDarkMod
       background: 'var(--bg-glass)',
       backdropFilter: 'blur(12px)',
       borderBottom: '1px solid var(--border)',
-      padding: '0.75rem 1.5rem',
+      padding: '0.65rem 1.5rem',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
       boxShadow: 'var(--shadow-sm)'
     }}>
-      {/* Brand & Logo */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-        <div style={{
-          width: '44px',
-          height: '44px',
-          borderRadius: '12px',
-          background: 'linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: 'white',
-          boxShadow: 'var(--shadow-glow)'
-        }}>
-          <GraduationCap size={26} />
-        </div>
+      {/* Brand & Official Logo SMKN 1 Cibinong */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+        <img
+          src="/logo-smkn1.png"
+          alt="Logo Resmi SMKN 1 Cibinong"
+          style={{
+            height: '46px',
+            width: 'auto',
+            objectFit: 'contain',
+            filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.12))'
+          }}
+        />
         <div>
           <h1 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', lineHeight: 1.2 }}>
             e-Learning <span style={{ color: '#2563eb' }}>SMKN 1 CIBINONG</span>
           </h1>
-          <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 500 }}>
-            LMS Pusat Keunggulan - Kab. Bogor
+          <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+            LMS Pusat Keunggulan • Kab. Bogor
           </p>
         </div>
       </div>
@@ -97,7 +93,7 @@ export default function Navbar({ currentUser, onUserChange, darkMode, setDarkMod
         <Search size={16} style={{ color: 'var(--text-muted)' }} />
         <input
           type="text"
-          placeholder="Cari mapel, tugas, atau ujian..."
+          placeholder="Cari mapel, materi, atau tugas..."
           style={{
             border: 'none',
             background: 'transparent',
@@ -171,19 +167,21 @@ export default function Navbar({ currentUser, onUserChange, darkMode, setDarkMod
           )}
         </div>
 
-        {/* Account & Role Switcher Dropdown */}
+        {/* User Profile Menu (Clean, no switcher list) */}
         <div style={{ position: 'relative' }}>
           <div
-            onClick={() => setShowRoleMenu(!showRoleMenu)}
+            onClick={() => setShowUserMenu(!showUserMenu)}
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: '0.65rem',
-              padding: '0.35rem 0.75rem',
+              padding: '0.35rem 0.85rem',
               background: 'var(--bg-card)',
               border: '1px solid var(--border)',
               borderRadius: '9999px',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              userSelect: 'none',
+              transition: 'all 0.2s ease'
             }}
           >
             <img
@@ -193,65 +191,112 @@ export default function Navbar({ currentUser, onUserChange, darkMode, setDarkMod
             />
             <div style={{ textAlign: 'left', lineHeight: 1.2 }}>
               <div style={{ fontSize: '0.85rem', fontWeight: 700 }}>{currentUser.name.split(' ')[0]}</div>
-              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{currentUser.role.toUpperCase()}</div>
+              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                {currentUser.classRoom ? currentUser.classRoom : currentUser.role.toUpperCase()}
+              </div>
             </div>
             <ChevronDown size={14} style={{ color: 'var(--text-muted)' }} />
           </div>
 
-          {showRoleMenu && (
+          {showUserMenu && (
             <div className="glass-card" style={{
               position: 'absolute',
               right: 0,
               top: '55px',
               width: '280px',
-              padding: '1rem',
-              zIndex: 60
+              padding: '1.25rem',
+              zIndex: 60,
+              boxShadow: '0 16px 36px -10px rgba(0,0,0,0.3)',
+              borderRadius: '16px',
+              border: '1px solid var(--border)'
             }}>
-              <div style={{ marginBottom: '0.75rem', paddingBottom: '0.5rem', borderBottom: '1px solid var(--border)' }}>
-                <div style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '0.35rem' }}>
-                  Simulasi Ganti Role / Akun:
-                </div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-main)', fontWeight: 600 }}>
+              {/* Profile Card Header */}
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                textAlign: 'center',
+                marginBottom: '1rem',
+                paddingBottom: '1rem',
+                borderBottom: '1px solid var(--border)'
+              }}>
+                <img
+                  src={currentUser.avatar}
+                  alt={currentUser.name}
+                  style={{
+                    width: '64px',
+                    height: '64px',
+                    borderRadius: '50%',
+                    objectFit: 'cover',
+                    border: '3px solid var(--primary)',
+                    marginBottom: '0.65rem'
+                  }}
+                />
+                <h4 style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-main)', margin: '0 0 0.25rem 0' }}>
                   {currentUser.name}
+                </h4>
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '0.45rem' }}>
+                  {currentUser.classRoom ? `${currentUser.classRoom} • ` : ''}
+                  {currentUser.identityNo ? `NISN/NIP: ${currentUser.identityNo}` : `@${currentUser.username}`}
                 </div>
-                <div style={{ marginTop: '0.25rem' }}>{getRoleBadge(currentUser.role)}</div>
+                <div>{getRoleBadge(currentUser.role)}</div>
               </div>
 
+              {/* Action Buttons */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                {INITIAL_USERS.map(u => (
-                  <button
-                    key={u.id}
-                    onClick={() => handleRoleSelect(u)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '0.5rem 0.75rem',
-                      borderRadius: '8px',
-                      border: u.id === currentUser.id ? '1.5px solid var(--primary)' : '1px solid var(--border)',
-                      background: u.id === currentUser.id ? 'var(--primary-light)' : 'var(--bg-card)',
-                      cursor: 'pointer',
-                      textAlign: 'left'
-                    }}
-                  >
-                    <div>
-                      <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-main)' }}>{u.name}</div>
-                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                        {u.role.toUpperCase()} {u.classRoom || u.subject ? `• ${u.classRoom || u.subject}` : ''}
-                      </div>
-                    </div>
-                    {u.id === currentUser.id && <ShieldCheck size={16} style={{ color: 'var(--primary)' }} />}
-                  </button>
-                ))}
-              </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab('profile');
+                    setShowUserMenu(false);
+                  }}
+                  className="btn btn-outline btn-sm"
+                  style={{
+                    width: '100%',
+                    fontSize: '0.82rem',
+                    justifyContent: 'flex-start',
+                    padding: '0.6rem 0.85rem',
+                    gap: '0.6rem'
+                  }}
+                >
+                  <UserCheck size={16} style={{ color: 'var(--primary)' }} />
+                  <span>Buka / Edit Profil Saya</span>
+                </button>
 
-              <button
-                onClick={() => apiService.resetToDefault()}
-                className="btn btn-outline btn-sm"
-                style={{ width: '100%', marginTop: '1rem', fontSize: '0.75rem', color: 'var(--danger)' }}
-              >
-                <RotateCcw size={12} /> Reset Seed Data Demo
-              </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowUserMenu(false);
+                    if (onLogout) {
+                      onLogout();
+                    }
+                  }}
+                  className="btn btn-sm"
+                  style={{
+                    width: '100%',
+                    fontSize: '0.82rem',
+                    justifyContent: 'flex-start',
+                    padding: '0.6rem 0.85rem',
+                    gap: '0.6rem',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    color: '#ef4444',
+                    border: '1px solid rgba(239, 68, 68, 0.25)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.backgroundColor = '#ef4444';
+                    e.currentTarget.style.color = '#ffffff';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
+                    e.currentTarget.style.color = '#ef4444';
+                  }}
+                >
+                  <LogOut size={16} />
+                  <span>Keluar (Logout)</span>
+                </button>
+              </div>
             </div>
           )}
         </div>

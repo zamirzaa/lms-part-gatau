@@ -4,13 +4,21 @@ import {
   Award,
   BookOpen,
   CheckCircle2,
-  School,
   FileSpreadsheet
 } from 'lucide-react';
 import { INITIAL_SCHOOL_INFO } from '../services/mockData';
 
 export default function GradesReportModule({ currentUser }) {
-  const gradesList = [
+  const isSija = currentUser.classRoom === 'XII SIJA';
+
+  const gradesList = isSija ? [
+    { code: 'SIJA-301', subject: 'Komputasi Awan (Cloud Computing) & DevOps', kkm: 75, score: 96, grade: 'A', status: 'Tuntas' },
+    { code: 'SIJA-302', subject: 'Keamanan Sistem Siber & Jaringan', kkm: 75, score: 92, grade: 'A', status: 'Tuntas' },
+    { code: 'RPL-301', subject: 'Pemrograman Web & Bergerak', kkm: 75, score: 94, grade: 'A', status: 'Tuntas' },
+    { code: 'RPL-302', subject: 'Basis Data & Cloud Architecture', kkm: 75, score: 90, grade: 'A', status: 'Tuntas' },
+    { code: 'UMM-101', subject: 'Matematika Kejuruan', kkm: 75, score: 91, grade: 'A', status: 'Tuntas' },
+    { code: 'UMM-103', subject: 'Bahasa Inggris Kejuruan', kkm: 75, score: 95, grade: 'A', status: 'Tuntas' }
+  ] : [
     { code: 'RPL-301', subject: 'Pemrograman Web & Bergerak', kkm: 75, score: 95, grade: 'A', status: 'Tuntas' },
     { code: 'RPL-302', subject: 'Basis Data & Cloud Architecture', kkm: 75, score: 92, grade: 'A', status: 'Tuntas' },
     { code: 'TKJ-301', subject: 'Administrasi Infrastruktur Jaringan', kkm: 75, score: 88, grade: 'B+', status: 'Tuntas' },
@@ -46,7 +54,7 @@ export default function GradesReportModule({ currentUser }) {
 
       {/* Official Printable Rapor Card */}
       <div className="card rapor-container" style={{ padding: '2.5rem', background: 'white', color: '#0f172a', border: '1px solid var(--border)' }}>
-        {/* Kop Surat Sekolah */}
+        {/* Kop Surat Sekolah Resmi dengan Logo Asli SMKN 1 Cibinong */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
@@ -55,19 +63,17 @@ export default function GradesReportModule({ currentUser }) {
           paddingBottom: '1rem',
           marginBottom: '1.5rem'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <div style={{
-              width: '55px', height: '55px', borderRadius: '12px',
-              background: '#1e3a8a', color: 'white',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900
-            }}>
-              <School size={36} />
-            </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+            <img
+              src="/logo-smkn1.png"
+              alt="Logo Resmi SMKN 1 Cibinong"
+              style={{ width: '70px', height: '70px', objectFit: 'contain' }}
+            />
             <div>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.02em', color: '#1e3a8a' }}>
-                PEMERINTAH PROVINSI JAWA BARAT
+              <h3 style={{ fontSize: '1.15rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.02em', color: '#1e3a8a' }}>
+                PEMERINTAH DAERAH PROVINSI JAWA BARAT
               </h3>
-              <h2 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#0f172a' }}>
+              <h2 style={{ fontSize: '1.45rem', fontWeight: 900, color: '#0f172a' }}>
                 DINAS PENDIDIKAN - SMKN 1 CIBINONG
               </h2>
               <p style={{ fontSize: '0.78rem', color: '#475569' }}>
@@ -76,7 +82,7 @@ export default function GradesReportModule({ currentUser }) {
             </div>
           </div>
           <div style={{ textAlign: 'right', fontSize: '0.8rem', color: '#475569' }}>
-            <strong>AKREDITASI A</strong><br />
+            <strong>AKREDITASI A (SANGAT BAIK)</strong><br />
             ISO 9001:2015 Verified
           </div>
         </div>
@@ -90,18 +96,18 @@ export default function GradesReportModule({ currentUser }) {
           <div>
             <p>Nama Peserta Didik: <strong>{currentUser.name}</strong></p>
             <p>NISN / NIS: <strong>{currentUser.identityNo}</strong></p>
-            <p>Kelas / Jurusan: <strong>{currentUser.classRoom || 'XII RPL 1'} • {currentUser.major || 'RPL'}</strong></p>
+            <p>Kelas / Jurusan: <strong>{currentUser.classRoom || 'XII SIJA'} • {currentUser.major || 'SIJA'}</strong></p>
           </div>
           <div style={{ textAlign: 'right' }}>
             <p>Tahun Pelajaran: <strong>2025/2026</strong></p>
             <p>Semester: <strong>Ganjil (1)</strong></p>
-            <p>Peringkat Kelas: <strong>2 Dari 36 Siswa</strong></p>
+            <p>Peringkat Kelas: <strong>{isSija ? '1 Dari 35 Siswa' : '2 Dari 36 Siswa'}</strong></p>
           </div>
         </div>
 
         {/* Grades Table */}
         <h4 style={{ fontSize: '1.05rem', fontWeight: 800, marginBottom: '0.75rem', color: '#1e3a8a' }}>
-          CAPAIAN HASIL BELAJAR (NILAI AKHIR MAPEL)
+          CAPAIAN HASIL BELAJAR (NILAI AKHIR MATA PELAJARAN)
         </h4>
 
         <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
@@ -145,7 +151,7 @@ export default function GradesReportModule({ currentUser }) {
             <p style={{ textDecoration: 'underline', fontWeight: 700 }}>( .................................................... )</p>
           </div>
           <div>
-            <p>Cibinong, 22 September 2026<br />Wali Kelas XII RPL 1,</p>
+            <p>Cibinong, 10 November 2026<br />Wali Kelas {currentUser.classRoom || 'XII SIJA'},</p>
             <div style={{ height: '70px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <span style={{ fontSize: '0.75rem', color: '#047857', border: '1px dashed #047857', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>
                 [ E-Signed Official SMKN 1 Cibinong ]

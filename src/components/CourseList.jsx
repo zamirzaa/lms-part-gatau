@@ -190,7 +190,7 @@ export default function CourseList({ currentUser, courses, setCourses, modules, 
         </div>
 
         <div style={{ display: 'flex', gap: '0.5rem' }}>
-          {['All', 'RPL', 'TKJ', 'Umum'].map(cat => (
+          {['All', 'SIJA', 'RPL', 'TKJ', 'Umum'].map(cat => (
             <button
               key={cat}
               onClick={() => setFilterMajor(cat)}
