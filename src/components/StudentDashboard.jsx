@@ -35,7 +35,7 @@ export default function StudentDashboard({ currentUser, setActiveTab, exams, ass
             Selamat Datang, {currentUser.name}!
           </h2>
           <p style={{ opacity: 0.9, maxWidth: '650px', fontSize: '0.95rem' }}>
-            Kelas: <strong>{currentUser.classRoom}</strong> • Jurusan: <strong>{currentUser.major}</strong> • NISN: {currentUser.identityNo}
+            Kelas: <strong>{currentUser.classRoom}</strong> • Jurusan: <strong>{currentUser.major}</strong> • NIS: {currentUser.identityNo}
           </p>
           <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.25rem' }}>
             <button onClick={() => setActiveTab('courses')} className="btn btn-accent">

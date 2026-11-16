@@ -15,6 +15,7 @@ import {
   Save
 } from 'lucide-react';
 import { apiService } from '../services/apiService';
+import UserAvatar from './UserAvatar';
 
 export default function UserProfileModule({ currentUser, onUserUpdated }) {
   const [formData, setFormData] = useState({
@@ -102,18 +103,7 @@ export default function UserProfileModule({ currentUser, onUserUpdated }) {
         {/* Left Column: Profile Card Preview */}
         <div className="card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', height: 'fit-content' }}>
           <div style={{ position: 'relative', marginBottom: '1rem' }}>
-            <img
-              src={formData.avatar || currentUser.avatar}
-              alt={currentUser.name}
-              style={{
-                width: '110px',
-                height: '110px',
-                borderRadius: '50%',
-                objectFit: 'cover',
-                border: '4px solid var(--primary-light)',
-                boxShadow: 'var(--shadow-md)'
-              }}
-            />
+            <UserAvatar user={currentUser} size={110} style={{ border: '4px solid var(--primary-light)', boxShadow: 'var(--shadow-md)' }} />
             <div style={{
               position: 'absolute',
               bottom: '4px',
@@ -142,7 +132,7 @@ export default function UserProfileModule({ currentUser, onUserUpdated }) {
           <div style={{ width: '100%', borderTop: '1px solid var(--border)', paddingTop: '1rem', marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.65rem', textAlign: 'left', fontSize: '0.85rem' }}>
             <div>
               <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 600, display: 'block' }}>
-                {currentUser.role === 'siswa' ? 'NISN RESMI' : 'NIP / NUPTK'}
+                {currentUser.role === 'siswa' ? 'NIS RESMI' : 'NIP / NUPTK'}
               </span>
               <span style={{ fontWeight: 700, color: 'var(--text-main)' }}>
                 {currentUser.identityNo}
@@ -220,10 +210,10 @@ export default function UserProfileModule({ currentUser, onUserUpdated }) {
                 />
               </div>
 
-              {/* Locked NISN / NIP */}
+              {/* Locked NIS / NIP */}
               <div className="form-group" style={{ margin: 0 }}>
                 <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span>{currentUser.role === 'siswa' ? 'NISN (Nomor Induk Siswa Nasional):' : 'NIP / NUPTK:'}</span>
+                  <span>{currentUser.role === 'siswa' ? 'NIS (Nomor Induk Siswa):' : 'NIP / NUPTK:'}</span>
                   <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
                     🔒 Dikunci Sistem
                   </span>
@@ -274,42 +264,21 @@ export default function UserProfileModule({ currentUser, onUserUpdated }) {
               </div>
             </div>
 
-            {/* Avatar URL & Quick Presets */}
-            <div className="form-group">
-              <label className="form-label">
-                <Camera size={14} style={{ display: 'inline', marginRight: '4px' }} />
-                URL Foto Profil (Avatar):
-              </label>
-              <input
-                type="url"
-                value={formData.avatar}
-                onChange={(e) => setFormData({ ...formData, avatar: e.target.value })}
-                className="form-input"
-                placeholder="https://..."
-              />
-              <div style={{ marginTop: '0.5rem' }}>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>
-                  Atau pilih avatar cepat:
-                </span>
-                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                  {avatarPresets.map((preset, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => setFormData({ ...formData, avatar: preset.url })}
-                      className="btn btn-outline btn-sm"
-                      style={{
-                        padding: '0.25rem 0.5rem',
-                        fontSize: '0.75rem',
-                        borderColor: formData.avatar === preset.url ? 'var(--primary)' : 'var(--border)',
-                        background: formData.avatar === preset.url ? 'var(--primary-light)' : 'transparent'
-                      }}
-                    >
-                      {preset.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
+            {/* Inisial Badge Notice (Tanpa Foto Profil) */}
+            <div style={{
+              padding: '0.85rem 1rem',
+              borderRadius: '10px',
+              background: 'var(--primary-light)',
+              border: '1px solid var(--border)',
+              marginBottom: '1rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.65rem'
+            }}>
+              <ShieldCheck size={18} style={{ color: 'var(--primary)', flexShrink: 0 }} />
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-main)', lineHeight: 1.4 }}>
+                Sesuai kebijakan identitas e-Learning SMKN 1 Cibinong, seluruh profil siswa menggunakan <strong>Lencana Inisial Resmi</strong> dan tidak memerlukan unggahan foto profil.
+              </span>
             </div>
 
             {/* Address */}

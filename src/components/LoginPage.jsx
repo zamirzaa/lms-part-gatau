@@ -27,7 +27,7 @@ export default function LoginPage({ onLoginSuccess, darkMode, setDarkMode }) {
     setError('');
 
     if (!identityOrUsername.trim()) {
-      setError('Silakan masukkan NISN (Siswa) atau NIP / Username (Guru & Admin).');
+      setError('Silakan masukkan NIS (Siswa) atau NIP / Username (Guru & Admin).');
       return;
     }
     if (!password) {
@@ -46,7 +46,7 @@ export default function LoginPage({ onLoginSuccess, darkMode, setDarkMode }) {
           onLoginSuccess(res.user);
         }
       } else {
-        setError(res.message || 'Login gagal. Periksa NISN/NIP dan password Anda.');
+        setError(res.message || 'Login gagal. Periksa NIS/NIP dan password Anda.');
       }
     }, 300);
   };
@@ -174,14 +174,14 @@ export default function LoginPage({ onLoginSuccess, darkMode, setDarkMode }) {
               fontWeight: 600,
               marginBottom: '0.45rem'
             }}>
-              NISN / NIP / Username
+              NIS / NIP / Username
             </label>
             <div style={{ position: 'relative' }}>
               <input
                 type="text"
                 value={identityOrUsername}
                 onChange={(e) => setIdentityOrUsername(e.target.value)}
-                placeholder="NISN / NIP"
+                placeholder="NIS / NIP"
                 autoComplete="username"
                 style={{
                   width: '100%',
@@ -331,7 +331,7 @@ export default function LoginPage({ onLoginSuccess, darkMode, setDarkMode }) {
             }}
           >
             <HelpCircle size={14} />
-            {showHelp ? 'Tutup Petunjuk Akun' : 'Bantuan Akun & Contoh NISN Siswa'}
+            {showHelp ? 'Tutup Petunjuk Akun' : 'Bantuan Akun & Contoh NIS Siswa'}
           </button>
 
           {showHelp && (
@@ -346,11 +346,11 @@ export default function LoginPage({ onLoginSuccess, darkMode, setDarkMode }) {
               lineHeight: 1.5
             }}>
               <div style={{ fontWeight: 700, color: '#f8fafc', marginBottom: '0.35rem' }}>
-                🔑 Info Kredensial Resmi:
+                🔑 Info Kredensial Resmi SMKN 1 Cibinong:
               </div>
               <ul style={{ paddingLeft: '1.1rem', margin: '0 0 0.65rem 0' }}>
                 <li>
-                  <strong>Siswa Kelas XII SIJA:</strong> Gunakan NISN (cth: <code>0072134001</code>).
+                  <strong>Siswa Kelas XII SIJA 2:</strong> Gunakan NIS (cth: <code>1024012417</code>).
                 </li>
                 <li>
                   <strong>Guru:</strong> Gunakan NIP (cth: <code>198504122010011002</code> / Budi Santoso).
@@ -369,7 +369,7 @@ export default function LoginPage({ onLoginSuccess, darkMode, setDarkMode }) {
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
                 <button
                   type="button"
-                  onClick={() => handleQuickFill('0072134001')}
+                  onClick={() => handleQuickFill('1024012417')}
                   style={{
                     fontSize: '0.7rem',
                     padding: '0.25rem 0.5rem',
@@ -380,7 +380,7 @@ export default function LoginPage({ onLoginSuccess, darkMode, setDarkMode }) {
                     cursor: 'pointer'
                   }}
                 >
-                  Siswa: Abraham (0072134001)
+                  Siswa: Abraham (1024012417)
                 </button>
                 <button
                   type="button"

@@ -10,6 +10,7 @@ import {
   User,
   ShieldAlert
 } from 'lucide-react';
+import UserAvatar from './UserAvatar';
 
 export default function Navbar({
   currentUser,
@@ -184,11 +185,7 @@ export default function Navbar({
               transition: 'all 0.2s ease'
             }}
           >
-            <img
-              src={currentUser.avatar}
-              alt={currentUser.name}
-              style={{ width: '34px', height: '34px', borderRadius: '50%', objectFit: 'cover' }}
-            />
+            <UserAvatar user={currentUser} size={34} />
             <div style={{ textAlign: 'left', lineHeight: 1.2 }}>
               <div style={{ fontSize: '0.85rem', fontWeight: 700 }}>{currentUser.name.split(' ')[0]}</div>
               <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
@@ -220,24 +217,15 @@ export default function Navbar({
                 paddingBottom: '1rem',
                 borderBottom: '1px solid var(--border)'
               }}>
-                <img
-                  src={currentUser.avatar}
-                  alt={currentUser.name}
-                  style={{
-                    width: '64px',
-                    height: '64px',
-                    borderRadius: '50%',
-                    objectFit: 'cover',
-                    border: '3px solid var(--primary)',
-                    marginBottom: '0.65rem'
-                  }}
-                />
+                <div style={{ marginBottom: '0.65rem' }}>
+                  <UserAvatar user={currentUser} size={64} />
+                </div>
                 <h4 style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-main)', margin: '0 0 0.25rem 0' }}>
                   {currentUser.name}
                 </h4>
                 <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '0.45rem' }}>
                   {currentUser.classRoom ? `${currentUser.classRoom} • ` : ''}
-                  {currentUser.identityNo ? `NISN/NIP: ${currentUser.identityNo}` : `@${currentUser.username}`}
+                  {currentUser.identityNo ? `NIS/NIP: ${currentUser.identityNo}` : `@${currentUser.username}`}
                 </div>
                 <div>{getRoleBadge(currentUser.role)}</div>
               </div>

@@ -6,7 +6,8 @@ import {
   INITIAL_ASSIGNMENTS,
   INITIAL_EXAMS,
   INITIAL_ATTENDANCE,
-  INITIAL_ANNOUNCEMENTS
+  INITIAL_ANNOUNCEMENTS,
+  INITIAL_SCHEDULE
 } from './mockData.js';
 
 const STORAGE_KEYS = {
@@ -18,7 +19,9 @@ const STORAGE_KEYS = {
   ATTENDANCE: 'smkn1_lms_attendance',
   ANNOUNCEMENTS: 'smkn1_lms_announcements',
   CURRENT_USER: 'smkn1_lms_current_user',
-  EXAM_RESULTS: 'smkn1_lms_exam_results'
+  EXAM_RESULTS: 'smkn1_lms_exam_results',
+  SCHEDULE: 'smkn1_lms_schedule',
+  CBT_LOCKS: 'smkn1_lms_cbt_locks'
 };
 
 // Helper Read/Write LocalStorage
@@ -42,8 +45,34 @@ function setStoredData(key, value) {
 
 // Service API
 export const apiService = {
-  // Init database with smart auto-merge of new initial data (e.g. XII SIJA)
+  // Init database with smart auto-merge & version migration for XII SIJA 2 (Blok 1 & 2, Screen Lock Anti-Cheat)
   initDatabase: () => {
+    const DATA_VERSION = 'v5_sija2_schedule_screenlock_final';
+    const currentVersion = localStorage.getItem('smkn1_lms_data_version');
+
+    if (currentVersion !== DATA_VERSION) {
+      setStoredData(STORAGE_KEYS.USERS, INITIAL_USERS);
+      setStoredData(STORAGE_KEYS.COURSES, INITIAL_COURSES);
+      setStoredData(STORAGE_KEYS.MODULES, INITIAL_MODULES);
+      setStoredData(STORAGE_KEYS.ASSIGNMENTS, INITIAL_ASSIGNMENTS);
+      setStoredData(STORAGE_KEYS.EXAMS, INITIAL_EXAMS);
+      setStoredData(STORAGE_KEYS.ATTENDANCE, INITIAL_ATTENDANCE);
+      setStoredData(STORAGE_KEYS.ANNOUNCEMENTS, INITIAL_ANNOUNCEMENTS);
+      setStoredData(STORAGE_KEYS.SCHEDULE, INITIAL_SCHEDULE);
+      setStoredData(STORAGE_KEYS.CBT_LOCKS, []);
+      localStorage.setItem('smkn1_lms_data_version', DATA_VERSION);
+
+      // Refresh current logged in user if exists
+      const existingCur = getStoredData(STORAGE_KEYS.CURRENT_USER, null);
+      if (existingCur) {
+        const matching = INITIAL_USERS.find(u => u.name.toLowerCase() === existingCur.name.toLowerCase() || u.id === existingCur.id);
+        if (matching) {
+          setStoredData(STORAGE_KEYS.CURRENT_USER, matching);
+        }
+      }
+      return;
+    }
+
     let existingUsers = getStoredData(STORAGE_KEYS.USERS, null);
     if (!existingUsers) {
       setStoredData(STORAGE_KEYS.USERS, INITIAL_USERS);
@@ -97,7 +126,7 @@ export const apiService = {
     const users = apiService.getUsers();
     const query = (identityOrUsername || '').trim().toLowerCase();
 
-    // Find by NISN / NIP or username or full name
+    // Find by NIS / NIP or username or full name
     const foundUser = users.find(u =>
       (u.identityNo && u.identityNo.toLowerCase() === query) ||
       (u.username && u.username.toLowerCase() === query) ||
@@ -105,7 +134,7 @@ export const apiService = {
     );
 
     if (!foundUser) {
-      return { success: false, message: 'NISN / NIP atau Username tidak terdaftar di sistem e-Learning SMKN 1 Cibinong.' };
+      return { success: false, message: 'NIS / NIP atau Username tidak terdaftar di sistem e-Learning SMKN 1 Cibinong.' };
     }
 
     // Default password for all accounts is '12345678'
@@ -291,6 +320,61 @@ export const apiService = {
     const list = getStoredData(STORAGE_KEYS.ANNOUNCEMENTS, INITIAL_ANNOUNCEMENTS);
     const updated = [ann, ...list];
     setStoredData(STORAGE_KEYS.ANNOUNCEMENTS, updated);
+    return updated;
+  },
+
+  // Jadwal Pelajaran (Schedule)
+  getSchedule: () => getStoredData(STORAGE_KEYS.SCHEDULE, INITIAL_SCHEDULE),
+
+  // CBT Anti-Cheat & Screen Lock System
+  getCbtLockSessions: () => getStoredData(STORAGE_KEYS.CBT_LOCKS, []),
+
+  getCbtLockForStudent: (studentId, examId) => {
+    const locks = getStoredData(STORAGE_KEYS.CBT_LOCKS, []);
+    return locks.find(l => l.studentId === studentId && (examId ? l.examId === examId : true) && l.isLocked);
+  },
+
+  lockCbtSession: ({ studentId, studentName, studentIdentityNo, classRoom, examId, examTitle, violationLogs }) => {
+    const locks = getStoredData(STORAGE_KEYS.CBT_LOCKS, []);
+    const existingIndex = locks.findIndex(l => l.studentId === studentId && l.examId === examId);
+    const lockRecord = {
+      id: `lock-${Date.now()}-${studentId}`,
+      studentId,
+      studentName,
+      studentIdentityNo,
+      classRoom: classRoom || 'XII SIJA 2',
+      examId,
+      examTitle,
+      violationLogs: violationLogs || [],
+      lockedAt: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' WIB',
+      date: new Date().toISOString().split('T')[0],
+      isLocked: true
+    };
+
+    let updated;
+    if (existingIndex >= 0) {
+      updated = [...locks];
+      updated[existingIndex] = lockRecord;
+    } else {
+      updated = [lockRecord, ...locks];
+    }
+    setStoredData(STORAGE_KEYS.CBT_LOCKS, updated);
+    return lockRecord;
+  },
+
+  unlockCbtSession: (studentId, examId) => {
+    const locks = getStoredData(STORAGE_KEYS.CBT_LOCKS, []);
+    const updated = locks.map(l => {
+      if (l.studentId === studentId && (examId ? l.examId === examId : true)) {
+        return {
+          ...l,
+          isLocked: false,
+          unlockedAt: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' WIB'
+        };
+      }
+      return l;
+    });
+    setStoredData(STORAGE_KEYS.CBT_LOCKS, updated);
     return updated;
   },
 

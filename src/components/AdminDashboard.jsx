@@ -10,11 +10,16 @@ import {
   Search,
   Plus,
   Edit3,
-  ShieldCheck
+  ShieldCheck,
+  X,
+  Unlock,
+  Lock,
+  Eye
 } from 'lucide-react';
 import { apiService } from '../services/apiService';
 import RealtimeClockWidget from './RealtimeClockWidget';
 import RealtimeActivityFeed from './RealtimeActivityFeed';
+import UserAvatar from './UserAvatar';
 
 export default function AdminDashboard({ currentUser, users, setUsers, announcements, setAnnouncements }) {
   const [showAddUserModal, setShowAddUserModal] = useState(false);
@@ -27,10 +32,23 @@ export default function AdminDashboard({ currentUser, users, setUsers, announcem
     role: 'siswa',
     name: '',
     identityNo: '',
-    classRoom: 'XII RPL 1',
-    major: 'Rekayasa Perangkat Lunak',
+    classRoom: 'XII SIJA 2',
+    major: 'Sistem Informatika, Jaringan & Aplikasi (SIJA)',
     email: ''
   });
+
+  // CBT Locks State & Reason Modal
+  const [cbtLocks, setCbtLocks] = useState(() => apiService.getCbtLockSessions());
+  const [selectedLockDetail, setSelectedLockDetail] = useState(null);
+
+  const handleUnlockCbt = (studentId, examId, studentName) => {
+    if (window.confirm(`Buka kunci CBT untuk siswa ${studentName}? Siswa akan dapat melanjutkan ujian.`)) {
+      apiService.unlockCbtSession(studentId, examId);
+      setCbtLocks(apiService.getCbtLockSessions());
+      setSelectedLockDetail(null);
+      alert(`Kunci ujian CBT siswa ${studentName} berhasil dibuka.`);
+    }
+  };
 
   // New Announcement Form State
   const [newAnnForm, setNewAnnForm] = useState({
@@ -146,6 +164,79 @@ export default function AdminDashboard({ currentUser, users, setUsers, announcem
         </div>
       </div>
 
+      {/* CBT SCREEN LOCK MONITORING & UNLOCK PANEL */}
+      {(() => {
+        const activeLocks = cbtLocks.filter(l => l.isLocked);
+        if (activeLocks.length === 0) return null;
+        return (
+          <div className="card" style={{
+            background: 'rgba(239, 68, 68, 0.05)',
+            border: '2px solid rgba(239, 68, 68, 0.3)',
+            borderRadius: '16px',
+            padding: '1.5rem'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                <ShieldAlert size={24} style={{ color: '#ef4444' }} />
+                <div>
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0, color: '#ef4444' }}>
+                    🚨 Pengawasan CBT: {activeLocks.length} Siswa Terkunci (Screen Lockout)
+                  </h3>
+                  <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                    Siswa terdeteksi 3 kali melanggar (pindah tab, keluar fullscreen, buka app lain). Klik tombol untuk memeriksa alasan dan membuka kunci.
+                  </p>
+                </div>
+              </div>
+              <span className="badge badge-danger">{activeLocks.length} Sesi Terkunci</span>
+            </div>
+
+            <div style={{ overflowX: 'auto' }}>
+              <table className="custom-table" style={{ fontSize: '0.86rem' }}>
+                <thead>
+                  <tr>
+                    <th>Nama Siswa</th>
+                    <th>NIS</th>
+                    <th>Kelas</th>
+                    <th>Paket Ujian</th>
+                    <th>Waktu Dikunci</th>
+                    <th style={{ textAlign: 'center' }}>Aksi Admin</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {activeLocks.map(l => (
+                    <tr key={l.id}>
+                      <td style={{ fontWeight: 700 }}>{l.studentName}</td>
+                      <td>{l.studentIdentityNo}</td>
+                      <td><span className="badge badge-primary">{l.classRoom}</span></td>
+                      <td style={{ fontWeight: 600 }}>{l.examTitle}</td>
+                      <td style={{ color: '#ef4444', fontWeight: 700 }}>{l.lockedAt}</td>
+                      <td style={{ textAlign: 'center' }}>
+                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                          <button
+                            onClick={() => setSelectedLockDetail(l)}
+                            className="btn btn-outline btn-sm"
+                            style={{ fontSize: '0.78rem', padding: '0.35rem 0.65rem' }}
+                          >
+                            Lihat 3 Alasan
+                          </button>
+                          <button
+                            onClick={() => handleUnlockCbt(l.studentId, l.examId, l.studentName)}
+                            className="btn btn-sm"
+                            style={{ background: '#10b981', color: 'white', border: 'none', fontSize: '0.78rem', padding: '0.35rem 0.75rem' }}
+                          >
+                            Buka Kunci (Unlock)
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Overview Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem' }}>
         <div className="card" style={{ borderLeft: '4px solid #2563eb' }}>
@@ -216,7 +307,7 @@ export default function AdminDashboard({ currentUser, users, setUsers, announcem
               <tr>
                 <th>Profil</th>
                 <th>Role</th>
-                <th>NISN / NIP</th>
+                <th>NIS / NIP</th>
                 <th>Kelas / Pengampu</th>
                 <th>Jurusan</th>
                 <th>Email</th>
@@ -227,7 +318,7 @@ export default function AdminDashboard({ currentUser, users, setUsers, announcem
               {users.map(u => (
                 <tr key={u.id}>
                   <td style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontWeight: 700 }}>
-                    <img src={u.avatar} alt={u.name} style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
+                    <UserAvatar user={u} size={32} />
                     {u.name}
                   </td>
                   <td>
@@ -455,7 +546,7 @@ export default function AdminDashboard({ currentUser, users, setUsers, announcem
                   Edit Data Pengguna
                 </h3>
                 <span style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: 700 }}>
-                  🛡️ Wewenang Penuh Administrator (Ubah Nama & NISN)
+                  🛡️ Wewenang Penuh Administrator (Ubah Nama & NIS / NIP)
                 </span>
               </div>
             </div>
@@ -473,7 +564,7 @@ export default function AdminDashboard({ currentUser, users, setUsers, announcem
               gap: '0.5rem'
             }}>
               <ShieldCheck size={16} style={{ color: 'var(--primary)', flexShrink: 0 }} />
-              <span>Sebagai Administrator Kurikulum, Anda memiliki wewenang resmi untuk memperbarui ejaan <strong>Nama</strong> dan <strong>NISN / NIP</strong>.</span>
+              <span>Sebagai Administrator Kurikulum, Anda memiliki wewenang resmi untuk memperbarui ejaan <strong>Nama</strong> dan <strong>NIS / NIP</strong>.</span>
             </div>
 
             <form onSubmit={handleSaveEditUser}>
@@ -492,10 +583,10 @@ export default function AdminDashboard({ currentUser, users, setUsers, announcem
                 />
               </div>
 
-              {/* EDITABLE NISN / NIP FOR ADMIN */}
+              {/* EDITABLE NIS / NIP FOR ADMIN */}
               <div className="form-group">
                 <label className="form-label" style={{ fontWeight: 700, color: 'var(--primary)' }}>
-                  {editUserForm.role === 'siswa' ? 'NISN (Nomor Induk Siswa Nasional):' : 'NIP / NUPTK:'}
+                  {editUserForm.role === 'siswa' ? 'NIS (Nomor Induk Siswa):' : 'NIP / NUPTK:'}
                 </label>
                 <input
                   type="text"
@@ -606,6 +697,56 @@ export default function AdminDashboard({ currentUser, users, setUsers, announcem
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* CBT Lock Detail Modal (Alasan Pelanggaran) */}
+      {selectedLockDetail && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(6px)',
+          zIndex: 110, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem'
+        }}>
+          <div className="card" style={{ width: '100%', maxWidth: '580px', background: 'var(--bg-card)', padding: '2rem', borderRadius: '16px', border: '1px solid var(--border)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <ShieldAlert size={20} style={{ color: '#ef4444' }} />
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0 }}>Detail 3 Alasan Pelanggaran Screen Lock</h3>
+              </div>
+              <button onClick={() => setSelectedLockDetail(null)} className="btn btn-sm btn-outline"><X size={16} /></button>
+            </div>
+
+            <div style={{ background: 'var(--bg-main)', padding: '0.85rem 1rem', borderRadius: '10px', marginBottom: '1.25rem', fontSize: '0.88rem' }}>
+              <p style={{ margin: '0 0 0.3rem 0' }}>Nama: <strong>{selectedLockDetail.studentName}</strong></p>
+              <p style={{ margin: '0 0 0.3rem 0' }}>NIS: <strong>{selectedLockDetail.studentIdentityNo}</strong> • Kelas: <strong>{selectedLockDetail.classRoom}</strong></p>
+              <p style={{ margin: 0 }}>Ujian: <strong>{selectedLockDetail.examTitle}</strong> — Dikunci: <strong style={{ color: '#ef4444' }}>{selectedLockDetail.lockedAt}</strong></p>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', marginBottom: '1.5rem' }}>
+              {(selectedLockDetail.violationLogs || []).map((v, i) => (
+                <div key={i} style={{
+                  padding: '0.75rem 1rem', borderRadius: '8px',
+                  border: '1px solid rgba(239,68,68,0.2)', background: 'rgba(239,68,68,0.06)', fontSize: '0.86rem'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                    <span style={{ fontWeight: 800, color: '#ef4444' }}>Pelanggaran #{v.attempt}</span>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{v.time}</span>
+                  </div>
+                  <div style={{ color: 'var(--text-main)', fontWeight: 600 }}>{v.reason}</div>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+              <button onClick={() => setSelectedLockDetail(null)} className="btn btn-outline">Tutup</button>
+              <button
+                onClick={() => handleUnlockCbt(selectedLockDetail.studentId, selectedLockDetail.examId, selectedLockDetail.studentName)}
+                className="btn btn-primary"
+                style={{ background: '#10b981', borderColor: '#10b981', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+              >
+                <Unlock size={16} /> Buka Kunci Siswa Ini
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -2,6 +2,7 @@ import React from 'react';
 import {
   LayoutDashboard,
   BookOpen,
+  Calendar,
   FileCheck2,
   CalendarCheck,
   Award,
@@ -16,6 +17,7 @@ export default function Sidebar({ currentUser, activeTab, setActiveTab }) {
     const common = [
       { id: 'dashboard', label: 'Dashboard Utama', icon: LayoutDashboard },
       { id: 'courses', label: 'Mata Pelajaran', icon: BookOpen },
+      { id: 'schedule', label: 'Jadwal Pelajaran', icon: Calendar },
       { id: 'exams', label: 'Ujian Online CBT', icon: FileCheck2 },
       { id: 'assignments', label: 'Tugas & Pengumpulan', icon: FileCheck2 },
       { id: 'attendance', label: 'Presensi Kehadiran', icon: CalendarCheck },

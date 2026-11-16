@@ -10,6 +10,7 @@ import CbtExamModule from './components/CbtExamModule';
 import AttendanceModule from './components/AttendanceModule';
 import GradesReportModule from './components/GradesReportModule';
 import UserProfileModule from './components/UserProfileModule';
+import ScheduleModule from './components/ScheduleModule';
 import { apiService } from './services/apiService';
 
 export default function App() {
@@ -111,6 +112,12 @@ export default function App() {
             modules={modules}
             setModules={setModules}
             assignments={assignments}
+          />
+        );
+      case 'schedule':
+        return (
+          <ScheduleModule
+            currentUser={currentUser}
           />
         );
       case 'exams':

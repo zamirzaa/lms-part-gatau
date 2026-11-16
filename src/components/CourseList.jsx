@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   BookOpen,
   FileText,
@@ -19,6 +19,8 @@ import {
   X
 } from 'lucide-react';
 import { apiService } from '../services/apiService';
+import { NETWORKING_QUIZ_QUESTIONS } from '../services/mockData';
+import UserAvatar from './UserAvatar';
 
 export default function CourseList({ currentUser, courses, setCourses, modules, setModules, assignments }) {
   const [selectedCourse, setSelectedCourse] = useState(null);
@@ -27,29 +29,49 @@ export default function CourseList({ currentUser, courses, setCourses, modules, 
   const [showAddModModal, setShowAddModModal] = useState(false);
   const [showAddQuizModal, setShowAddQuizModal] = useState(false);
 
-  // Quizzes state per course
-  const [courseQuizzes, setCourseQuizzes] = useState([
-    {
-      id: 'qz-1',
-      courseId: 'crs-pwb',
-      title: 'Kuis Latihan 1: Component & Props',
-      timeLimit: 15,
-      questions: [
-        {
-          id: 'q-qz-1',
-          question: 'Bagaimana cara mendaftarkan event handler onClick di React?',
-          options: ['onClick={handleClick}', 'onclick="handleClick()"', 'on:click="handleClick"', 'click={handleClick}'],
-          correctOption: 0
-        },
-        {
-          id: 'q-qz-2',
-          question: 'Apa kegunaan properti "key" pada perulangan list elemen React?',
-          options: ['Memberikan warna unik', 'Membantu React mengidentifikasi item mana yang berubah', 'Mempercepat kecepatan internet', 'Mencegah syntax error CSS'],
-          correctOption: 1
-        }
-      ]
-    }
-  ]);
+  // Quizzes state per course (including 20 Networking questions for crs-aij)
+  const [courseQuizzes, setCourseQuizzes] = useState(() => {
+    try {
+      const saved = localStorage.getItem('smkn1_lms_course_quizzes_v4');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+
+    return [
+      {
+        id: 'qz-networking-20',
+        courseId: 'crs-aij',
+        title: 'Kuis Evaluasi Administrasi Infrastruktur Jaringan (20 Soal)',
+        timeLimit: 40,
+        questions: NETWORKING_QUIZ_QUESTIONS
+      },
+      {
+        id: 'qz-1',
+        courseId: 'crs-pwb',
+        title: 'Kuis Latihan 1: Component & Props',
+        timeLimit: 15,
+        questions: [
+          {
+            id: 'q-qz-1',
+            question: 'Bagaimana cara mendaftarkan event handler onClick di React?',
+            options: ['onClick={handleClick}', 'onclick="handleClick()"', 'on:click="handleClick"', 'click={handleClick}'],
+            correctOption: 0
+          },
+          {
+            id: 'q-qz-2',
+            question: 'Apa kegunaan properti "key" pada perulangan list elemen React?',
+            options: ['Memberikan warna unik', 'Membantu React mengidentifikasi item mana yang berubah', 'Mempercepat kecepatan internet', 'Mencegah syntax error CSS'],
+            correctOption: 1
+          }
+        ]
+      }
+    ];
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('smkn1_lms_course_quizzes_v4', JSON.stringify(courseQuizzes));
+    } catch (e) {}
+  }, [courseQuizzes]);
 
   // Quiz Attempt State for Student
   const [activeQuizSession, setActiveQuizSession] = useState(null);
@@ -465,7 +487,7 @@ export default function CourseList({ currentUser, courses, setCourses, modules, 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <div className="card" style={{ background: 'var(--bg-main)' }}>
                     <div style={{ display: 'flex', gap: '0.75rem' }}>
-                      <img src={currentUser.avatar} alt={currentUser.name} style={{ width: '36px', height: '36px', borderRadius: '50%' }} />
+                      <UserAvatar user={currentUser} size={36} />
                       <div style={{ flex: 1 }}>
                         <textarea placeholder="Tuliskan pertanyaan atau tanggapan diskusi..." className="form-textarea" rows="2" style={{ width: '100%' }} />
                         <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
